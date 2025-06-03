@@ -98,3 +98,64 @@ variable "common_tags" {
   type        = map(string)
   default     = null
 }
+
+variable "ip_configuration_name" {
+  description = "Name for the IP configuration block of the Virtual Network Gateway."
+  type        = string
+  default     = "vnetGatewayConfig"
+}
+
+variable "enable_vpn_client_configuration" {
+  description = "If true, VPN client configuration will be enabled."
+  type        = bool
+  default     = true # Assuming it's commonly used, can be false
+}
+
+variable "create_local_network_gateway" {
+  description = "If true, a Local Network Gateway will be created."
+  type        = bool
+  default     = true
+}
+
+variable "gateway_address" {
+  description = "The gateway IP address of the local network. Required if create_local_network_gateway is true."
+  type        = string
+  default     = null
+}
+
+variable "address_spaces" {
+  description = "A list of address spaces for the Local Network Gateway. Each element is a list of CIDR blocks. Required if create_local_network_gateway is true."
+  type        = list(list(string)) # List of address prefix lists
+  default     = []
+}
+
+variable "create_gateway_connection" {
+  description = "If true, a Virtual Network Gateway Connection will be created. Requires create_local_network_gateway to be true."
+  type        = bool
+  default     = true
+}
+
+variable "connection_type" {
+  description = "The type of connection. Valid options are IPsec, ExpressRoute, or Vnet2Vnet."
+  type        = string
+  default     = "IPsec"
+}
+
+variable "shared_key" {
+  description = "The shared key for the IPsec connection. Required if create_gateway_connection is true and type is IPsec."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "routing_weight" {
+  description = "The routing weight for the connection."
+  type        = number
+  default     = 10
+}
+
+variable "use_policy_based_traffic_selectors" {
+  description = "If true, policy-based traffic selectors will be used for the connection."
+  type        = bool
+  default     = false
+}

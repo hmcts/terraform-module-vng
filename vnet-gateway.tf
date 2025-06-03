@@ -23,38 +23,76 @@ resource "azurerm_virtual_network_gateway" "this" {
       dynamic "peering_addresses" {
         for_each = var.bgp_peering_address
         content {
-          apipa_addresses = bgp_peering_address.value
+          apipa_addresses = peering_addresses.value
         }
       }
     }
   }
 
   ip_configuration {
-    name                          = "vnetGatewayConfig"
+    name                          = var.ip_configuration_name
     public_ip_address_id          = var.public_ip_address_id
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = var.subnet_id
   }
 
-  vpn_client_configuration {
-    address_space = var.vpn_client_address_space
+  dynamic "vpn_client_configuration" {
+    for_each = var.enable_vpn_client_configuration ? [1] : []
+    content {
+      address_space = var.vpn_client_address_space
 
-    dynamic "root_certificate" {
-      for_each = var.root_certificates
-      content {
-        name             = root_certificate.value.name
-        public_cert_data = root_certificate.value.public_cert_data
+      dynamic "root_certificate" {
+        for_each = var.root_certificates
+        content {
+          name             = root_certificate.value.name
+          public_cert_data = root_certificate.value.public_cert_data
+        }
       }
-    }
 
-    dynamic "revoked_certificate" {
-      for_each = var.revoked_certificates
-      content {
-        name       = revoked_certificate.value.name
-        thumbprint = revoked_certificate.value.thumbprint
+      dynamic "revoked_certificate" {
+        for_each = var.revoked_certificates
+        content {
+          name       = revoked_certificate.value.name
+          thumbprint = revoked_certificate.value.thumbprint
+        }
       }
     }
   }
+
+  tags = var.common_tags
+}
+
+resource "azurerm_local_network_gateway" "this" {
+  count               = var.create_local_network_gateway ? 1 : 0
+  name                = "${local.name}-local"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  gateway_address = var.gateway_address
+
+  dynamic "address_space" {
+    for_each = var.address_spaces
+    content {
+      address_prefixes = address_space.value
+    }
+  }
+
+  tags = var.common_tags
+}
+
+resource "azurerm_virtual_network_gateway_connection" "this" {
+  count               = var.create_gateway_connection && var.create_local_network_gateway ? 1 : 0
+  name                = "${local.name}-connection"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  type                               = var.connection_type
+  virtual_network_gateway_id         = azurerm_virtual_network_gateway.this.id
+  local_network_gateway_id           = azurerm_local_network_gateway.this[0].id
+  shared_key                         = var.shared_key
+  enable_bgp                         = var.enable_bgp
+  routing_weight                     = var.routing_weight
+  use_policy_based_traffic_selectors = var.use_policy_based_traffic_selectors
 
   tags = var.common_tags
 }
