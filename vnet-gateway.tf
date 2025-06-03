@@ -14,6 +14,21 @@ resource "azurerm_virtual_network_gateway" "this" {
   enable_bgp    = var.enable_bgp
   sku           = var.sku
 
+  dynamic "bgp_settings" {
+    for_each = var.enable_bgp ? [1] : []
+    content {
+      asn         = var.bgp_asn
+      peer_weight = var.bgp_peer_weight
+
+      dynamic "peering_addresses" {
+        for_each = var.bgp_peering_address
+        content {
+          apipa_addresses = bgp_peering_address.value
+        }
+      }
+    }
+  }
+
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = var.public_ip_address_id
@@ -40,4 +55,6 @@ resource "azurerm_virtual_network_gateway" "this" {
       }
     }
   }
+
+  tags = var.common_tags
 }

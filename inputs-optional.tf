@@ -46,6 +46,29 @@ variable "enable_bgp" {
   default     = false
 }
 
+variable "bgp_asn" {
+  description = "BGP ASN."
+  type        = number
+  default     = null
+}
+
+variable "bgp_peering_address" {
+  description = "BGP peering address."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = !var.active_active || length(var.bgp_peering_address) == 1
+    error_message = "If active_active is true, the bgp_peering_address list must contain exactly one address."
+  }
+}
+
+variable "bgp_peer_weight" {
+  description = "The weight added to routes learned through BGP peering. Valid values are between 0 and 100."
+  type        = number
+  default     = null
+}
+
 variable "vpn_client_address_space" {
   description = "VPN client address space."
   type        = list(string)
@@ -55,7 +78,7 @@ variable "vpn_client_address_space" {
 variable "root_certificates" {
   description = "List of root certificates."
   type = list(object({
-    name            = string
+    name             = string
     public_cert_data = string
   }))
   default = []
@@ -68,4 +91,10 @@ variable "revoked_certificates" {
     thumbprint = string
   }))
   default = []
+}
+
+variable "common_tags" {
+  description = "Common Tags"
+  type        = map(string)
+  default     = null
 }
