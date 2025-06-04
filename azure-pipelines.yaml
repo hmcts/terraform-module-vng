@@ -9,33 +9,28 @@ pr:
 
 resources:
   repositories:
-    - repository: cnp-azuredevops-libraries
-      type: github
-      ref: refs/heads/master
-      name: hmcts/cnp-azuredevops-libraries
-      endpoint: 'hmcts'
+  - repository: cppAzureDevOpsTemplates
+    type: github
+    name: hmcts/cpp-azure-devops-templates
+    ref: 'main'
+    endpoint: 'hmcts'
 
-variables:
-  - name: timeoutInMinutes
-    value: 60
-  - name: agentImage
-    value: ubuntu-latest
-  - template: vars/input-variables.yaml@cnp-azuredevops-libraries
+pool:
+  name: "MDV-ADO-AGENT-AKS-01"
+  demands:
+    - identifier -equals centos8-j17
 
 stages:
-  - stage: Precheck
+  - stage: precommit
+    pool:
+      name: ${{ parameters.agentPool }}
     jobs:
-      - job:
-        pool: 
-          vmImage: ${{ variables.agentImage }}
+      - job: pre
+        condition: eq(variables['Build.Reason'], 'PullRequest')
         steps:
-          - template: steps/terraform-precheck.yaml@cnp-azuredevops-libraries
+          - template: steps/terraform/terraform-precommit.yaml@cppAzureDevOpsTemplates
             parameters:
-              keyvaultName: 'infra-vault-nonprod'
-              keyvaultSecret: 'azure-devops-sp-token'
-              serviceConnection: 'azurerm-sandbox'
-              overrideAction: 'plan'
-              forcePreventParallelJobRun: true
+              tfversion: ${{ parameters.tfversion }}
 
   - stage: Test
     dependsOn: Precheck
