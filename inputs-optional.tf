@@ -123,9 +123,9 @@ variable "gateway_address" {
   default     = null
 }
 
-variable "address_spaces" {
-  description = "A list of address spaces for the Local Network Gateway. Each element is a list of CIDR blocks. Required if create_local_network_gateway is true."
-  type        = list(list(string)) # List of address prefix lists
+variable "local_network_address_space" {
+  description = "The address space of the local network. Required if create_local_network_gateway is true."
+  type        = list(string)
   default     = []
 }
 

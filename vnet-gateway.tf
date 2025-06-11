@@ -69,13 +69,7 @@ resource "azurerm_local_network_gateway" "this" {
   resource_group_name = var.resource_group_name
 
   gateway_address = var.gateway_address
-
-  dynamic "address_space" {
-    for_each = var.address_spaces
-    content {
-      address_prefixes = address_space.value
-    }
-  }
+  address_space   = var.local_network_address_space
 
   tags = var.common_tags
 }
