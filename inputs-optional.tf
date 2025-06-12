@@ -159,3 +159,9 @@ variable "use_policy_based_traffic_selectors" {
   type        = bool
   default     = false
 }
+
+variable "generation" {
+  description = "The generation of the Virtual Network Gateway"
+  type        = string
+  default     = "None"
+}

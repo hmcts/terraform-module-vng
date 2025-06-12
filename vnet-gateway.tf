@@ -13,6 +13,7 @@ resource "azurerm_virtual_network_gateway" "this" {
   active_active = var.active_active
   enable_bgp    = var.enable_bgp
   sku           = var.sku
+  generation    = var.generation
 
   dynamic "bgp_settings" {
     for_each = var.enable_bgp ? [1] : []
