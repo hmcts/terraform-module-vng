@@ -1,7 +1,5 @@
 locals {
-  name                 = var.override_name == null ? (var.name == null ? "${var.product}-${var.env}" : "${var.name}-${var.env}") : var.override_name
-  subnet_id            = var.create_gateway_subnet ? azurerm_subnet.gateway_subnet[0].id : var.subnet_id
-  public_ip_address_id = var.create_public_ip ? azurerm_public_ip.gateway_ip[0].id : var.public_ip_address_id
+  name = var.override_name == null ? (var.name == null ? "${var.product}-${var.env}" : "${var.name}-${var.env}") : var.override_name
 }
 
 resource "azurerm_virtual_network_gateway" "this" {
@@ -34,9 +32,9 @@ resource "azurerm_virtual_network_gateway" "this" {
 
   ip_configuration {
     name                          = var.ip_configuration_name
-    public_ip_address_id          = local.public_ip_address_id
+    public_ip_address_id          = var.public_ip_address_id
     private_ip_address_allocation = "Dynamic"
-    subnet_id                     = local.subnet_id
+    subnet_id                     = var.subnet_id
   }
 
   dynamic "vpn_client_configuration" {

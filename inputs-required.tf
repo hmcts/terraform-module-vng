@@ -12,3 +12,13 @@ variable "env" {
   description = "Environment name for naming."
   type        = string
 }
+
+variable "public_ip_address_id" {
+  description = "Public IP address resource ID."
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "Gateway subnet resource ID."
+  type        = string
+}
