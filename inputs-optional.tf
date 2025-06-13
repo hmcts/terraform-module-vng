@@ -169,3 +169,15 @@ variable "virtual_network_name" {
   type        = string
   default     = null
 }
+
+variable "public_ip_address_id" {
+  description = "Public IP address resource ID."
+  type        = string
+  default     = null
+}
+
+variable "subnet_id" {
+  description = "Gateway subnet resource ID."
+  type        = string
+  default     = null
+}
