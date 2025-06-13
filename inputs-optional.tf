@@ -152,6 +152,12 @@ variable "create_gateway_subnet" {
   default     = false
 }
 
+variable "subnet_name" {
+  description = "Name of the gateway subnet. Required if create_gateway_subnet is true."
+  type        = string
+  default     = "GatewaySubnet"
+}
+
 variable "address_prefixes" {
   description = "Address prefixes for the gateway subnet."
   type        = list(string)
