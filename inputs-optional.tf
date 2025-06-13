@@ -56,11 +56,6 @@ variable "bgp_peering_address" {
   description = "BGP peering address."
   type        = list(string)
   default     = []
-
-  validation {
-    condition     = !var.active_active || length(var.bgp_peering_address) == 1
-    error_message = "If active_active is true, the bgp_peering_address list must contain exactly one address."
-  }
 }
 
 variable "bgp_peer_weight" {
@@ -111,57 +106,60 @@ variable "enable_vpn_client_configuration" {
   default     = true # Assuming it's commonly used, can be false
 }
 
-variable "create_local_network_gateway" {
-  description = "If true, a Local Network Gateway will be created."
-  type        = bool
-  default     = true
-}
-
-variable "gateway_address" {
-  description = "The gateway IP address of the local network. Required if create_local_network_gateway is true."
-  type        = string
-  default     = null
-}
-
-variable "local_network_address_space" {
-  description = "The address space of the local network. Required if create_local_network_gateway is true."
-  type        = list(string)
-  default     = []
-}
-
-variable "create_gateway_connection" {
-  description = "If true, a Virtual Network Gateway Connection will be created. Requires create_local_network_gateway to be true."
-  type        = bool
-  default     = true
-}
-
-variable "connection_type" {
-  description = "The type of connection. Valid options are IPsec, ExpressRoute, or Vnet2Vnet."
-  type        = string
-  default     = "IPsec"
-}
-
-variable "shared_key" {
-  description = "The shared key for the IPsec connection. Required if create_gateway_connection is true and type is IPsec."
-  type        = string
-  default     = null
-  sensitive   = true
-}
-
-variable "routing_weight" {
-  description = "The routing weight for the connection."
-  type        = number
-  default     = 10
-}
-
-variable "use_policy_based_traffic_selectors" {
-  description = "If true, policy-based traffic selectors will be used for the connection."
-  type        = bool
-  default     = false
+variable "local_network_gateways" {
+  description = "Map of local network gateways to create. Key is the gateway name suffix."
+  type = map(object({
+    gateway_address   = string
+    address_space     = list(string)
+    create_connection = optional(bool, true)
+    connection_config = optional(object({
+      connection_type                    = optional(string, "IPsec")
+      shared_key                         = optional(string)
+      routing_weight                     = optional(number, 10)
+      use_policy_based_traffic_selectors = optional(bool, false)
+      enable_bgp                         = optional(bool, false)
+    }), {})
+  }))
+  default = {}
 }
 
 variable "generation" {
   description = "The generation of the Virtual Network Gateway"
   type        = string
   default     = "None"
+}
+
+variable "create_public_ip" {
+  description = "If true, a public IP address will be created for the Virtual Network Gateway."
+  type        = bool
+  default     = false
+}
+
+variable "public_ip_name" {
+  description = "Name of the public IP address resource."
+  type        = string
+  default     = null
+}
+variable "public_ip_allocation_method" {
+  description = "Allocation method for the public IP address."
+  type        = string
+  default     = "Dynamic"
+}
+
+variable "create_gateway_subnet" {
+  description = "If true, a gateway subnet will be created."
+  type        = bool
+  default     = false
+}
+
+variable "address_prefixes" {
+  description = "Address prefixes for the gateway subnet."
+  type        = list(string)
+  default     = []
+}
+
+variable "virtual_network_name" {
+  description = "Name of the virtual network where the gateway subnet will be created. Required if create_gateway_subnet is true."
+  type        = string
+  default     = null
 }

@@ -1,5 +1,7 @@
 locals {
-  name = var.override_name == null ? (var.name == null ? "${var.product}-${var.env}" : "${var.name}-${var.env}") : var.override_name
+  name                 = var.override_name == null ? (var.name == null ? "${var.product}-${var.env}" : "${var.name}-${var.env}") : var.override_name
+  subnet_id            = var.subnet_id != null ? var.subnet_id : azurerm_subnet.gateway_subnet[0].id
+  public_ip_address_id = var.public_ip_address_id != null ? var.public_ip_address_id : azurerm_public_ip.gateway_ip[0].id
 }
 
 resource "azurerm_virtual_network_gateway" "this" {
@@ -32,9 +34,9 @@ resource "azurerm_virtual_network_gateway" "this" {
 
   ip_configuration {
     name                          = var.ip_configuration_name
-    public_ip_address_id          = var.public_ip_address_id
+    public_ip_address_id          = local.public_ip_address_id
     private_ip_address_allocation = "Dynamic"
-    subnet_id                     = var.subnet_id
+    subnet_id                     = local.subnet_id
   }
 
   dynamic "vpn_client_configuration" {
@@ -64,30 +66,32 @@ resource "azurerm_virtual_network_gateway" "this" {
 }
 
 resource "azurerm_local_network_gateway" "this" {
-  count               = var.create_local_network_gateway ? 1 : 0
-  name                = "${local.name}-local"
+  for_each = var.local_network_gateways
+
+  name                = "${local.name}-${each.key}-local"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  gateway_address = var.gateway_address
-  address_space   = var.local_network_address_space
+  gateway_address = each.value.gateway_address
+  address_space   = each.value.address_space
 
   tags = var.common_tags
 }
 
 resource "azurerm_virtual_network_gateway_connection" "this" {
-  count               = var.create_gateway_connection && var.create_local_network_gateway ? 1 : 0
-  name                = "${local.name}-connection"
+  for_each = { for k, v in var.local_network_gateways : k => v if v.create_connection }
+
+  name                = "${local.name}-${each.key}-connection"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  type                               = var.connection_type
+  type                               = each.value.connection_config.connection_type
   virtual_network_gateway_id         = azurerm_virtual_network_gateway.this.id
-  local_network_gateway_id           = azurerm_local_network_gateway.this[0].id
-  shared_key                         = var.shared_key
-  enable_bgp                         = var.enable_bgp
-  routing_weight                     = var.routing_weight
-  use_policy_based_traffic_selectors = var.use_policy_based_traffic_selectors
+  local_network_gateway_id           = azurerm_local_network_gateway.this[each.key].id
+  shared_key                         = each.value.connection_config.shared_key
+  enable_bgp                         = each.value.connection_config.enable_bgp
+  routing_weight                     = each.value.connection_config.routing_weight
+  use_policy_based_traffic_selectors = each.value.connection_config.use_policy_based_traffic_selectors
 
   tags = var.common_tags
 }
