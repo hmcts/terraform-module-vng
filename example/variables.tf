@@ -1,15 +1,23 @@
 variable "env" {
-  default = "sandbox"
+  description = "Environment name"
+  type        = string
+  default     = "sandbox"
 }
 
 variable "product" {
-  default = "platops"
+  description = "Product name"
+  type        = string
+  default     = "platops"
 }
 
 variable "builtFrom" {
-  default = "local"
+  description = "Source of the build"
+  type        = string
+  default     = "local"
 }
 
 variable "location" {
-  default = "UK South"
+  description = "Azure region where resources will be created"
+  type        = string
+  default     = "UK South"
 }
