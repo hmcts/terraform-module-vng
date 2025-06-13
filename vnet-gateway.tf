@@ -1,7 +1,7 @@
 locals {
   name                 = var.override_name == null ? (var.name == null ? "${var.product}-${var.env}" : "${var.name}-${var.env}") : var.override_name
-  subnet_id            = var.subnet_id != null ? var.subnet_id : azurerm_subnet.gateway_subnet[0].id
-  public_ip_address_id = var.public_ip_address_id != null ? var.public_ip_address_id : azurerm_public_ip.gateway_ip[0].id
+  subnet_id            = var.create_gateway_subnet ? azurerm_subnet.gateway_subnet[0].id : var.subnet_id
+  public_ip_address_id = var.create_public_ip ? azurerm_public_ip.gateway_ip[0].id : var.public_ip_address_id
 }
 
 resource "azurerm_virtual_network_gateway" "this" {
