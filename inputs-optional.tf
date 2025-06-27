@@ -103,7 +103,7 @@ variable "ip_configuration_name" {
 variable "enable_vpn_client_configuration" {
   description = "If true, VPN client configuration will be enabled."
   type        = bool
-  default     = true # Assuming it's commonly used, can be false
+  default     = false
 }
 
 variable "local_network_gateways" {
