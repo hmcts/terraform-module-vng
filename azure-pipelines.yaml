@@ -1,0 +1,52 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+
+pr:
+  - master
+
+resources:
+  repositories:
+  - repository: cppAzureDevOpsTemplates
+    type: github
+    name: hmcts/cpp-azure-devops-templates
+    ref: 'main'
+    endpoint: 'hmcts'
+
+pool:
+  name: "MDV-ADO-AGENT-AKS-01"
+  demands:
+    - identifier -equals centos8-j17
+
+stages:
+  - stage: precommit
+    pool:
+      name: ${{ parameters.agentPool }}
+    jobs:
+      - job: pre
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+        steps:
+          - template: steps/terraform/terraform-precommit.yaml@cppAzureDevOpsTemplates
+            parameters:
+              tfversion: ${{ parameters.tfversion }}
+
+  - stage: Test
+    dependsOn: Precheck
+    jobs:
+      - job: TerraformTest
+        pool: 
+          vmImage: ${{ variables.agentImage }}
+        timeoutInMinutes: ${{ variables.timeoutInMinutes }}
+        workspace:
+          clean: all
+        steps:
+        - task: AzureCLI@2
+          inputs:
+            azureSubscription: 'DTS-SHAREDSERVICESPTL-SBOX'
+            scriptType: 'bash'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              terraform init
+              terraform test
